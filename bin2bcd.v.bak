@@ -1,0 +1,99 @@
+module bin2bcd(clk, rst_n, bin, bcd);
+	input clk,rst_n;
+	input [19:0] bin;
+	output reg [23:0] bcd;
+	
+	reg[19:0] regdata, regdata1;
+	reg[3:0] w1, w2,w3,w4, w5, w6;
+	reg[1:0] state;
+	reg[4:0] q;
+	
+	always @ (posedge clk or negedge rst_n)
+		begin 
+			if(!rst_n)
+				begin
+					state <= 0;
+					bcd <= 0;
+					regdata <= 0;
+					regdata1 <= 0;
+					w1 <= 0;
+					w2 <= 0;
+					w3 <= 0;
+					w4 <= 0;
+					w5 <= 0;
+					w6 <= 0;
+					q <= 0;
+				end
+			else
+				case(state)
+					0:
+						begin
+							regdata <= bin;
+							regdata1 <= bin;
+							state <= 1;
+							w1 <= 0;
+							w2 <= 0;
+							w3 <= 0;
+							w4 <= 0;
+							w5 <= 0;
+							w6 <= 0;
+							q <= 0;
+						end
+					1:
+						begin
+							q <= q + 1;
+							regdata <= (regdata << 1);
+							w1 <= {w1[2:0],regdata[19]};
+							w2 <= {w2[2:0],w1[3]};
+							w3 <= {w3[2:0],w2[3]};
+							w4 <= {w4[2:0],w3[3]};
+							w5 <= {w5[2:0],w4[3]};
+							w6 <= {w6[2:0],w5[3]};
+							if(q == 19)
+								begin
+									state <= 3;
+								end
+								else
+									state <= 2;
+						end
+						
+					2:
+						begin
+							state <= 1;
+							if(w1 >= 5)
+								w1 <= w1 + 3;
+							else
+								w1 <= w1;
+							if(w2 >= 5)
+								w2 <= w2 + 3;
+							else
+								w2 <= w2;
+							if(w3 >= 5)
+								w3 <= w3 + 3;
+							else
+								w3 <= w3;
+							if(w4 >= 5)
+								w4 <= w4 + 3;
+							else
+								w4 <= w4;
+							if(w5 >= 5)
+								w5 <= w5 + 3;
+							else
+								w5 <= w5;
+							if(w6 >= 5)
+								w6 <= w6 + 3;
+							else
+								w6 <= w6;
+						end
+					3:
+						begin
+							bcd <= {w6,w5,w4,w3,w2,w1};
+							if(regdata != bin)
+								state <= 0;
+							else
+								state <= 3;
+						end
+					endcase
+				end
+	endmodule
+							
